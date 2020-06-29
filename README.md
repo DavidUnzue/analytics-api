@@ -152,4 +152,4 @@ curl --location --request GET 'http://localhost:7000/page-views/rate?where={%22p
 ## Author
 
 David Unzué  
-[davidunzue.com](davidunzue.com)
+[davidunzue.com](https://davidunzue.com)
