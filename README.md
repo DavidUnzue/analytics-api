@@ -1,40 +1,29 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
-</p>
+# Analytics Service API
 
-[travis-image]: https://api.travis-ci.org/nestjs/nest.svg?branch=master
-[travis-url]: https://travis-ci.org/nestjs/nest
-[linux-image]: https://img.shields.io/travis/nestjs/nest/master.svg?label=linux
-[linux-url]: https://travis-ci.org/nestjs/nest
-  
-  <p align="center">A progressive <a href="http://nodejs.org" target="blank">Node.js</a> framework for building efficient and scalable server-side applications, heavily inspired by <a href="https://angular.io" target="blank">Angular</a>.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/dm/@nestjs/core.svg" alt="NPM Downloads" /></a>
-<a href="https://travis-ci.org/nestjs/nest"><img src="https://api.travis-ci.org/nestjs/nest.svg?branch=master" alt="Travis" /></a>
-<a href="https://travis-ci.org/nestjs/nest"><img src="https://img.shields.io/travis/nestjs/nest/master.svg?label=linux" alt="Linux" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#5" alt="Coverage" /></a>
-<a href="https://gitter.im/nestjs/nestjs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge"><img src="https://badges.gitter.im/nestjs/nestjs.svg" alt="Gitter" /></a>
-<a href="https://opencollective.com/nest#backer"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec"><img src="https://img.shields.io/badge/Donate-PayPal-dc3d53.svg"/></a>
-  <a href="https://twitter.com/nestframework"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Setup and configuration
 
-## Description
+### Installation
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+You will need Node.js (tested with v14.4.0) and MondoDB (tested with v4.2.8) installed and running. MongoDB port should be configured in the environmnet variables as described below.
 
-## Installation
+Install dependencies:
 
 ```bash
 $ npm install
 ```
 
-## Running the app
+### Environment variables
+
+The project uses [dotenv](https://www.npmjs.com/package/dotenv) to load environment variables stored in the `.env`. Following information is defined here:
+
+- Host and port to run the app
+- Host and port where the MongoDB database is running
+- Name of the MongoDB database to be used by the app
+- API Token to secure HTTP requests from clients
+
+## Start the application
+
+Start dev server:
 
 ```bash
 # development
@@ -42,34 +31,125 @@ $ npm run start
 
 # watch mode
 $ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
-## Test
+The API server will run under `http://localhost:7000`.
+
+## Page Views
+
+Every page view is an entity with multiple properties like page ID, user ID (IP address), browser name, time viewed, etc. This gets stored as a Document in the DB.
+
+## API Endpoints
+
+Every request must send a custom Header called `Api-Token` with the corresponding token (see `.env` file) for authorization.
+
+**`/page-views`**
+Page views can be found under the route: `/page-views`.
+The endpoint accepts query params for filtering/queries (`where`) and for projections (`projection`). In general you will find that most MongoDB queries work.
+
+The endpoint returns a list of page view entities.
+
+**`/page-views/rate`**
+There is a special route for retrieving the rate of returning users under `/page-views/rate`. The endpoint accepts query params for filtering/queries (`where`).
+
+The endpoint returns an object like:
+
+```
+{ rate: 60 }
+```
+
+### Generate new page views
+
+`POST http://localhost:7000/page-views`
+
+You can generate new page views either by using the angular client as described in the client's repository README.
+
+Or you can generate new mock views programmatically using the API from a client like `curl` or `Postman`:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+curl --location --request POST 'http://localhost:7000/page-views' \
+--header 'Api-Token: 123456789' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "pageId": "page-1"
+}'
 ```
 
-## Support
+As you see, it is only necessary to send the ID of the page you want to generate a new view for. All other attributes like country, browser name, user ID, etc will be generated by the backend.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+However, you can force them manually:
 
-## Stay in touch
+```bash
+curl --location --request POST 'http://localhost:7000/page-views' \
+--header 'Api-Token: 123456789' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "pageId": "page-1",
+    "country": "Germany",
+    "browserName": "Firefox",
+    "userId": "69.89.31.226"
+}'
+```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**Note**: if not manually given, the userId defaults to the IP address the request came from.
 
-## License
+### Get all page views
 
-  Nest is [MIT licensed](LICENSE).
+`GET http://localhost:7000/page-views`
+
+```bash
+curl --location --request GET 'http://localhost:7000/page-views' \
+--header 'Api-Token: 123456789'
+```
+
+### Get page views by page id
+
+`GET http://localhost:7000/page-views?where={"pageId": "page-1"}`
+
+```bash
+curl --location --request GET 'http://localhost:7000/page-views?where={%22pageId%22:%20%22page-1%22}' \
+--header 'Api-Token: 123456789'
+```
+
+### Get page views by country
+
+`GET http://localhost:7000/page-views?where={"country": "Germany"}`
+
+```bash
+curl --location --request GET 'http://localhost:7000/page-views?where={%22country%22:%20%22Germany%22}' \
+--header 'Api-Token: 123456789'
+```
+
+### Get page views by countries
+
+`GET http://localhost:7000/page-views?where={ "$or": [ { "country": "Germany" }, { "country": "France" } ] }`
+
+```bash
+curl --location --request GET 'http://localhost:7000/page-views?where={%20%22$or%22:%20[%20{%20%22country%22:%20%22Germany%22%20},%20{%20%22country%22:%20%22France%22%20}%20]%20}' \
+--header 'Api-Token: 123456789'
+```
+
+### Get page activity for a given period of time
+
+`GET http://localhost:7000/page-views?where={"pageId": "page1", "viewedAt" : {"$gte": 1593335945884}}`
+
+```bash
+curl --location --request GET 'http://localhost:7000/page-views?where={%22pageId%22:%20%22page1%22,%20%20%22viewedAt%22%20:%20{%22$gte%22:%201593335945884}}' \
+--header 'Api-Token: 123456789'
+```
+
+### Get the rate of returning users for a given period of time for a page
+
+This uses the endpoint `/page-views/rate`.
+
+`GET http://localhost:7000/page-views/rate?where={"pageId": "page1", "viewedAt" : {"$gte": 1593335945884}}`
+
+```bash
+curl --location --request GET 'http://localhost:7000/page-views/rate?where={%22pageId%22:%20%22page1%22,%20%20%22viewedAt%22%20:%20{%22$gte%22:%201593335945884}}' \
+--header 'Api-Token: 123456789'
+```
+
+## Author
+
+David Unzué  
+[davidunzue.com](davidunzue.com)
