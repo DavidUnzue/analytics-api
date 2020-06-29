@@ -70,9 +70,19 @@ export class PageViewsService {
         allUsers.add(userId);
       }
     });
-    // return rate of returning vs all users
+
+    // calculate rate of returning vs all users
+    let rate = 0;
+    if (returningUsers.size > 0 && allUsers.size > 0) {
+      try {
+        rate = (returningUsers.size / allUsers.size) * 100 || rate;
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
     return {
-      rate: (returningUsers.size / allUsers.size) * 100,
+      rate: rate,
     };
   }
 

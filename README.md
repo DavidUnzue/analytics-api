@@ -14,7 +14,7 @@ $ npm install
 
 ### Environment variables
 
-The project uses [dotenv](https://www.npmjs.com/package/dotenv) to load environment variables stored in the `.env`. Following information is defined here:
+The project uses [dotenv](https://www.npmjs.com/package/dotenv) to load environment variables stored in the `.env` file. Following information is defined here:
 
 - Host and port to run the app
 - Host and port where the MongoDB database is running
@@ -43,13 +43,13 @@ Every page view is an entity with multiple properties like page ID, user ID (IP 
 
 Every request must send a custom Header called `Api-Token` with the corresponding token (see `.env` file) for authorization.
 
-**`/page-views`**
+**`/page-views`**  
 Page views can be found under the route: `/page-views`.
 The endpoint accepts query params for filtering/queries (`where`) and for projections (`projection`). In general you will find that most MongoDB queries work.
 
 The endpoint returns a list of page view entities.
 
-**`/page-views/rate`**
+**`/page-views/rate`**  
 There is a special route for retrieving the rate of returning users under `/page-views/rate`. The endpoint accepts query params for filtering/queries (`where`).
 
 The endpoint returns an object like:
